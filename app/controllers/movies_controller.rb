@@ -11,8 +11,19 @@ class MoviesController < ApplicationController
   end
 
   def index
+    redirect = false
     @movies = Movie.all
     @all_ratings = ['G', 'PG', 'PG-13', 'R']
+    @sort = params[:sort] ? params[:sort] : session[:sort]
+    @ratings = params[:ratings] ? params[:ratings] : session[:ratings]
+    if(params[:sort] != @sort) || (params[:ratings] != @ratings)
+      redirect = true
+    end
+    if @ratings.nil?
+      @ratings = {}
+      @all_ratings.each{|r| @ratings[r] = 1}
+    end
+    redirect_to movies_path(sort: @sort, ratings: @ratings) if redirect
     if params[:ratings]
       @movies = Movie.where(rating: params[:ratings].keys) 
     end
@@ -25,8 +36,8 @@ class MoviesController < ApplicationController
       @release_date_header = {:oder=>:release_date},'hilite'
       @movies = @movies.sort_by{|m| m.release_date.to_s}
     end
-    
-    
+    session[:sort] = @sort
+    session[:ratings] = @ratings
   end
 
   def new
